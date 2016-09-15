@@ -1,10 +1,10 @@
 package nl.yrck.mprog_madlibs;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -21,6 +21,11 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     public final static String STORY = "nl.yrck.mprog_madlibs.STORY";
+    static final String STORY_RESOURCE_ID = "story_id";
+    static final String EDITTEXT_VALUES = "edittext_values";
+
+    LinearLayoutCompat lm;
+    int resourceIdRawStory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +35,31 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final LinearLayoutCompat lm = (LinearLayoutCompat) findViewById(R.id.linearMain);
+        // Recreate saved story
+        if (savedInstanceState != null) {
+            resourceIdRawStory = savedInstanceState.getInt(STORY_RESOURCE_ID);
+        } else {
+            resourceIdRawStory = getIdRandomRawText();
+        }
 
-        final Story story = new Story(getListOfRawTexts());
+        // Load story and edittext view
+        final Story story = new Story(getResourceRandomText(resourceIdRawStory));
+        createWidgets(story);
+
+        // Recreate strings already put in to edit text
+        if (savedInstanceState != null) {
+            recreateEditTextStrings(savedInstanceState.getStringArrayList(EDITTEXT_VALUES));
+        }
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener((View v) -> startShowStoryActivity(story));
+    }
+
+    /**
+     * @param story
+     */
+    private void createWidgets(Story story) {
+        lm = (LinearLayoutCompat) findViewById(R.id.linearMain);
 
         int i = 0;
         for (String placeholder : story.getPlaceHolders()) {
@@ -51,58 +78,117 @@ public class MainActivity extends AppCompatActivity {
 
             i++;
         }
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener((View v) -> {
-            ArrayList<EditText> editTexts = new ArrayList<>();
-            for (int j = 0; j < lm.getChildCount(); j++) {
-                if (lm.getChildAt(j) instanceof EditText) {
-                    editTexts.add(((EditText) lm.getChildAt(j)));
-                }
-            }
-
-            // Sort based on tag
-            Collections.sort(editTexts, (EditText editText, EditText t1) ->
-                    ((int) editText.getTag() - (int) t1.getTag()));
-
-            if (allPlaceHolderFilled(editTexts)) {
-                for (EditText editText : editTexts) {
-                    String placeHolder = editText.getText().toString();
-                    story.fillInPlaceholder(placeHolder);
-                }
-                // Launch story activity
-                Intent intent = new Intent(MainActivity.this, ShowStoryActivity.class);
-                intent.putExtra(STORY, story.toString());
-                startActivity(intent);
-            } else {
-                Snackbar snackbar = Snackbar.make(lm, "Not all placeholders are filled!",
-                        Snackbar.LENGTH_LONG);
-                snackbar.show();
-            }
-        });
     }
 
+    /**
+     * @param story
+     */
+    private void startShowStoryActivity(Story story) {
+        ArrayList<EditText> editTexts = getEditTexts();
+        ArrayList<String> editTextsStrings = saveEditTextStrings(editTexts);
+        if (allPlaceHolderFilled(editTexts)) {
+            for (String editTextString : editTextsStrings) {
+                story.fillInPlaceholder(editTextString);
+            }
+            // Launch story activity
+            Intent intent = new Intent(MainActivity.this, ShowStoryActivity.class);
+            intent.putExtra(STORY, story.toString());
+            startActivity(intent);
+        } else {
+            Snackbar snackbar = Snackbar.make(lm, "Not all placeholders are filled!",
+                    Snackbar.LENGTH_LONG);
+            snackbar.show();
+        }
+    }
+
+    /**
+     * @param editTexts
+     * @return
+     */
     private boolean allPlaceHolderFilled(ArrayList<EditText> editTexts) {
         for (EditText editText : editTexts) {
             String placeHolder = editText.getText().toString();
             if (placeHolder.equals("")) {
-                return true;
+                return false;
             }
         }
         return true;
     }
 
-    private InputStream getListOfRawTexts() {
+    /**
+     *
+     * @return
+     */
+    private int getIdRandomRawText() {
         Field[] fields = R.raw.class.getFields();
         Random random = new Random();
         int randomInt = random.nextInt(fields.length);
         try {
-            int resourceID = fields[randomInt].getInt(fields[randomInt]);
-            return getResources().openRawResource(resourceID);
+            return fields[randomInt].getInt(fields[randomInt]);
         } catch (IllegalAccessException e) {
             Log.e("Illegal Access", "E: " + e);
         }
-        return null;
+        return 0;
     }
 
+    /**
+     *
+     * @param resourceID
+     * @return
+     */
+    private InputStream getResourceRandomText(int resourceID) {
+        return getResources().openRawResource(resourceID);
+    }
+
+    /**
+     * @return
+     */
+    private ArrayList<EditText> getEditTexts() {
+        ArrayList<EditText> editTexts = new ArrayList<>();
+        for (int j = 0; j < lm.getChildCount(); j++) {
+            if (lm.getChildAt(j) instanceof EditText) {
+                editTexts.add(((EditText) lm.getChildAt(j)));
+            }
+        }
+        return editTexts;
+    }
+
+    /**
+     * @param editTexts
+     * @return
+     */
+    private ArrayList<String> saveEditTextStrings(ArrayList<EditText> editTexts) {
+        ArrayList<String> editTextStrings = new ArrayList<>();
+
+        // Sort based on tag
+        Collections.sort(editTexts, (EditText editText, EditText t1) ->
+                ((int) editText.getTag() - (int) t1.getTag()));
+
+
+        for (EditText editText : editTexts) {
+            String placeHolder = editText.getText().toString();
+            editTextStrings.add(placeHolder);
+        }
+        return editTextStrings;
+    }
+
+    /**
+     * @param editTextStrings
+     */
+    private void recreateEditTextStrings(ArrayList<String> editTextStrings) {
+        ArrayList<EditText> editTexts = getEditTexts();
+        for (int i = 0; i < editTextStrings.size(); i++) {
+            editTexts.get(i).setText(editTextStrings.get(i));
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(STORY_RESOURCE_ID, resourceIdRawStory);
+
+        ArrayList<EditText> editTexts = getEditTexts();
+        outState.putStringArrayList(EDITTEXT_VALUES, saveEditTextStrings(editTexts));
+
+        super.onSaveInstanceState(outState);
+    }
 }
