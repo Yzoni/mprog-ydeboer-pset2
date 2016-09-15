@@ -31,23 +31,24 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="16dp"
             android:paddingLeft="16dp"
-            android:paddingRight="16dp">
+            android:paddingRight="16dp"
+            android:paddingTop="16dp">
 
             <TextView
                 android:id="@+id/title_fill_words"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fill in the words:"
-                android:textSize="20sp"
-                android:paddingBottom="16dp"/>
+                android:paddingBottom="16dp"
+                android:text="@string/fill_in_the_words"
+                android:textSize="20sp" />
 
             <android.support.v7.widget.LinearLayoutCompat
                 android:id="@+id/linearMain"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/title_fill_words"
+                android:layout_marginBottom="80dp"
                 android:orientation="vertical">
 
             </android.support.v7.widget.LinearLayoutCompat>
