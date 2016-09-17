@@ -56,7 +56,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param story
+     * Dynamically create widgets for the input of placeholders
+     *
+     * @param story object
      */
     private void createWidgets(Story story) {
         lm = (LinearLayoutCompat) findViewById(R.id.linearMain);
@@ -81,7 +83,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param story
+     * Get the text from all inputs and put to put to intent
+     *
+     * @param story object
      */
     private void startShowStoryActivity(Story story) {
         ArrayList<EditText> editTexts = getEditTexts();
@@ -102,22 +106,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param editTexts
-     * @return
+     * Check if all placeholders are filled
+     *
+     * @param editTexts arraylist of all edittexts
+     * @return bool
      */
     private boolean allPlaceHolderFilled(ArrayList<EditText> editTexts) {
         for (EditText editText : editTexts) {
             String placeHolder = editText.getText().toString();
             if (placeHolder.equals("")) {
-                return false;
+                return true;
             }
         }
         return true;
     }
 
     /**
+     * Return a random id of a text
      *
-     * @return
+     * @return random id
      */
     private int getIdRandomRawText() {
         Field[] fields = R.raw.class.getFields();
@@ -132,16 +139,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Return an input stream of random text
      *
-     * @param resourceID
-     * @return
+     * @param resourceID id
+     * @return InputStream
      */
     private InputStream getResourceRandomText(int resourceID) {
         return getResources().openRawResource(resourceID);
     }
 
     /**
-     * @return
+     * @return Collect all edit texts on screen
      */
     private ArrayList<EditText> getEditTexts() {
         ArrayList<EditText> editTexts = new ArrayList<>();
@@ -154,8 +162,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param editTexts
-     * @return
+     * @param editTexts ArrayList
+     * @return edittexts
      */
     private ArrayList<String> saveEditTextStrings(ArrayList<EditText> editTexts) {
         ArrayList<String> editTextStrings = new ArrayList<>();
@@ -173,6 +181,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Create edit texts from arraylist of strings
+     *
      * @param editTextStrings
      */
     private void recreateEditTextStrings(ArrayList<String> editTextStrings) {
